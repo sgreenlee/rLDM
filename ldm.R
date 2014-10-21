@@ -42,7 +42,7 @@ ldm.default <- function(y, X, kernel = 'radial', cost = 10, gamma=1, degree=2, l
   ret$fitted <- sign(G %*% ret$alpha)
   ret$cost <- cost
   ret$lambda_1 <- lambda_1
-  ret$lambda_1 <- lambda_2
+  ret$lambda_2 <- lambda_2
   ret$gamma <- gamma
   ret$degree <- degree
   class(ret) <- 'ldm'
