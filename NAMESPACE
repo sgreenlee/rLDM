@@ -1,1 +1,2 @@
+useDynLib(rldm)
 exportPattern("^[[:alpha:]]+")
