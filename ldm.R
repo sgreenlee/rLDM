@@ -1,7 +1,7 @@
 
 ldm <- function(x, ...) UseMethod("ldm")
 
-ldm.default <- function(y, X, kernel = 'radial', cost = 10, gamma=1, lambda_1=1/4, lambda_2=1/4)
+ldm.default <- function(y, X, kernel = 'radial', cost = 10, gamma=1, degree=2, lambda_1=1/4, lambda_2=1/4)
 {
   kernel_type <- pmatch(kernel, c('linear', 'polynomial', 'radial', 'sigmoid')) - 1
   
@@ -11,16 +11,41 @@ ldm.default <- function(y, X, kernel = 'radial', cost = 10, gamma=1, lambda_1=1/
   
   X <- scale(X)
   
-  ret <- ldm_train(y, X, gamma, lambda_1, lambda_2, cost)
+  tuning_params <- c(cost, lambda_1, lambda_2, degree, gamma)
+  n <- dim(X)[1]
+  m <- dim(X)[2]
   
+  dyn.load('rldm_train.so')
+  gmat <- .C("makeGramMatrix", as.double(X), as.integer(n), as.integer(m),
+              G=double(n^2), as.integer(kernel_type), as.double(tuning_params))
+  G <- matrix(gmat$G, nrow=n)
+  Gy <- G %*% y
+  Y <- diag(y)
+  GY <- G %*% Y
+  Q <- 4 * lambda_2 * ((t(G) %*% G) / n - Gy %*% t(Gy) / n^2) + G
+  invQ <- .Internal(La_solve(Q, diag(n), .Machine$double.eps))
+  A <- invQ %*% GY
+  h <- diag(t(GY) %*% A)
+  
+  alpha <- lambda_2 / n * invQ %*% Gy 
+  beta <- double(n)
+  beta_old <- double(n)
+  del_beta <- double(n)
+  
+  cret <- .C("coordDescent", as.integer(n), as.double(A), as.double(GY), 
+             alpha = as.double(alpha), beta = as.double(beta), as.double(beta_old), 
+             as.double(del_beta), as.double(h), as.double(cost))
+  dyn.unload('rldm_train.so')
+  
+  ret <- list(alpha=cret$alpha)
+  ret$G <- G
+  ret$fitted <- sign(G %*% ret$alpha)
   ret$cost <- cost
-  ret$gamma <- gamma
   ret$lambda_1 <- lambda_1
-  ret$lambda_2 <- lambda_2
-  ret$call <- match.call()
-  ret$fitted <- sign(ret$K %*% ret$alpha)
-  class(ret) <- "ldm"
-  
+  ret$lambda_1 <- lambda_2
+  ret$gamma <- gamma
+  ret$degree <- degree
+  class(ret) <- 'ldm'
   ret
 }
   
@@ -38,7 +63,6 @@ ldm.formula <- function(formula, data = NULL, ... )
   ret$call <- call
 }
   
-}
 
 ldm_train <- function(y, X, gamma, lambda_1, lambda_2, cost)
 {
