@@ -48,25 +48,47 @@ void makeGramMatrix(double *X, int *n, int* m, double*G,
   {
     case 0: // linear kernel //
     {
-      for (int j=0; j<*n; j++)
+      Rprintf("Kernel type: linear");
+      for (int j=0;j<*n;j++)
       {
-        for (int i=0; i<*n; i++)
+        for (int i=0;i<*n;i++) 
         {
-          for (int k=0; k<*m; k++)
+          //  set G[i,j] //
+          double tmp = 0;
+          for (int k=0;k<*m;k++)
           {
-            G[j * *n + i] += X[i * *n + k] * X[j * *n + k];
+            tmp += X[i + k * *n] * X[j + k * *n];
+          }
+          G[j * *n + i] =  tmp;
           }
         }
-      }
+      break;
     }
     
     case 1: // polynomial kernel //
     {
-      
+      Rprintf("Kernel type: polynomial");
+      double degree = tuning_params[3];
+      double c = tuning_params[2];
+      for (int j=0;j<*n;j++)
+      {
+        for (int i=0;i<*n;i++) 
+        {
+          //  set G[i,j] //
+          double tmp = 0;
+          for (int k=0;k<*m;k++)
+          {
+            tmp += X[i + k * *n] * X[j + k * *n];
+          }
+          G[j * *n + i] =  pow(tmp + c, degree);
+        }
+      }
+      break;
     }
     
     case 2: // radial-basis-function kernel //
     {
+      Rprintf("Kernel type: radial");
       double rbf_gamma = tuning_params[4];
       for (int j=0;j<*n;j++)
       {
@@ -85,12 +107,53 @@ void makeGramMatrix(double *X, int *n, int* m, double*G,
           }
         }
       }
+      break;
     }
     
     case 3: // sigmoid kernel //
     {
-    }
-    
-      
+      Rprintf("Kernel type: sigmoid kernel");
+      double a = tuning_params[1];
+      double r = tuning_params[0];
+      for (int j=0;j<*n;j++)
+      {
+        for (int i=0;i<*n;i++) 
+        {
+          double tmp = 0;
+          for (int k=0;k<*m;k++) // ||Xi - Xj||_2
+          {
+            tmp += X[i + k * *n] * X[j + k * *n];
+          }
+          G[j * *n + i] =  tanh(a * tmp + r);
+        }
+      }
+      break;
+    } 
   }
 }
+
+void ldmPredict(double *alpha, double *rbf_gamma, double *newdata, int *dim, 
+                  double *modelMatrix, double *pred)
+{
+  int n = dim[0]; // # of new instances to predict
+  int m = dim[1]; // # of features
+  int p = dim[2]; // # of instances in training set
+  
+  
+  double tmp;
+  for (int i=0;i<n;i++)
+  {
+    pred[i] = 0;
+    for (int j=0;j<p;j++) 
+    {
+      tmp = 0;
+      for (int k=0;k<m;k++)
+      {
+        tmp += pow(newdata[i + k * m] - modelMatrix[j + k * m], 2);
+      }
+      tmp = alpha[j] * exp(-*rbf_gamma * tmp);
+      pred[i] += tmp;
+    }
+  }
+}
+

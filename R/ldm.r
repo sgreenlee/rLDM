@@ -1,7 +1,8 @@
 
 ldm <- function(x, ...) UseMethod("ldm")
 
-ldm.default <- function(y, X, kernel = 'radial', cost = 10, gamma=1, degree=2, lambda_1=1/4, lambda_2=1/4)
+ldm.default <- function(y, X, kernel = 'radial', cost = 10, gamma=1, degree=2, 
+                        a=1, c=1, r=0, lambda_1=1/4, lambda_2=1/4)
 {
   kernel_type <- pmatch(kernel, c('linear', 'polynomial', 'radial', 'sigmoid')) - 1
   
@@ -11,13 +12,15 @@ ldm.default <- function(y, X, kernel = 'radial', cost = 10, gamma=1, degree=2, l
   
   X <- scale(X)
   
-  tuning_params <- c(cost, lambda_1, lambda_2, degree, gamma)
+  tuning_params <- c(r, a, c, degree, gamma)
   n <- dim(X)[1]
   m <- dim(X)[2]
   
-  gmat <- .C("makeGramMatrix", as.double(X), as.integer(n), as.integer(m),
+  if (kernel_type != 0) {
+    gmat <- .C("makeGramMatrix", as.double(X), as.integer(n), as.integer(m),
               G=double(n^2), as.integer(kernel_type), as.double(tuning_params),
              PACKAGE="rldm")
+  }
   G <- matrix(gmat$G, nrow=n)
   Gy <- G %*% y
   Y <- diag(y)
@@ -45,7 +48,7 @@ ldm.default <- function(y, X, kernel = 'radial', cost = 10, gamma=1, degree=2, l
   ret$gamma <- gamma
   ret$degree <- degree
   class(ret) <- 'ldm'
-  ret
+  return(ret)
 }
   
 ldm.formula <- function(formula, data = NULL, ... )
@@ -60,4 +63,6 @@ ldm.formula <- function(formula, data = NULL, ... )
   
   ret <- ldm.default(y, X, ...)
   ret$call <- call
+  class(ret) <- c('ldm.formula', class(ret))
+  return(ret)
 }

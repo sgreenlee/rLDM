@@ -1,2 +1,5 @@
 useDynLib(rldm)
-exportPattern("^[[:alpha:]]+")
+export(ldm)
+
+S3method(ldm, default)
+S3method(ldm, formula)
