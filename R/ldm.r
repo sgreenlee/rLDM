@@ -47,6 +47,7 @@ ldm.default <- function(y, X, kernel = 'radial', cost = 10, gamma=1, degree=2,
   ret$lambda_2 <- lambda_2
   ret$gamma <- gamma
   ret$degree <- degree
+  ret$model.matrix <- X
   class(ret) <- 'ldm'
   return(ret)
 }

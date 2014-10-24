@@ -3,3 +3,4 @@ export(ldm)
 
 S3method(ldm, default)
 S3method(ldm, formula)
+S3method(predict, ldm)

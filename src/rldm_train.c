@@ -136,20 +136,20 @@ void ldmPredict(double *alpha, double *rbf_gamma, double *newdata, int *dim,
                   double *modelMatrix, double *pred)
 {
   int n = dim[0]; // # of new instances to predict
-  int m = dim[1]; // # of features
-  int p = dim[2]; // # of instances in training set
+  int m = dim[1]; // # of instances in training set
+  int p = dim[2]; // # of features
   
   
   double tmp;
   for (int i=0;i<n;i++)
   {
     pred[i] = 0;
-    for (int j=0;j<p;j++) 
+    for (int j=0;j<m;j++) 
     {
       tmp = 0;
-      for (int k=0;k<m;k++)
+      for (int k=0;k<p;k++)
       {
-        tmp += pow(newdata[i + k * m] - modelMatrix[j + k * m], 2);
+        tmp += pow(newdata[i + k * p] - modelMatrix[j + k * p], 2);
       }
       tmp = alpha[j] * exp(-*rbf_gamma * tmp);
       pred[i] += tmp;
