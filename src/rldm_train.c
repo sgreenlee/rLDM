@@ -88,7 +88,6 @@ void makeGramMatrix(double *X, int *n, int* m, double*G,
     
     case 2: // radial-basis-function kernel //
     {
-      Rprintf("Kernel type: radial");
       double rbf_gamma = tuning_params[4];
       for (int j=0;j<*n;j++)
       {
