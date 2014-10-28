@@ -1,7 +1,7 @@
 
 ldm <- function(x, ...) UseMethod("ldm")
 
-ldm.default <- function(y, X, kernel = 'radial', cost = 10, gamma=1, degree=2, 
+ldm.default <- function(X, y, kernel = 'radial', cost = 10, gamma=1, degree=2, 
                         a=1, c=1, r=0, lambda_1=1/4, lambda_2=1/4, scale=T)
 {
   kernel_type <- pmatch(kernel, c('linear', 'polynomial', 'radial', 'sigmoid')) - 1
@@ -75,7 +75,7 @@ ldm.formula <- function(formula, data = NULL, ... )
   X <- model.matrix(Terms, mf)
   y <- model.extract(mf, "response")
   
-  ret <- ldm.default(y, X, ...)
+  ret <- ldm.default(X, y, ...)
   ret$call <- call
   class(ret) <- c('ldm.formula', class(ret))
   return(ret)

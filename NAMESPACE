@@ -1,6 +1,10 @@
 useDynLib(rldm)
 export(ldm)
+export(tune_ldm)
 
 S3method(ldm, default)
 S3method(ldm, formula)
+
 S3method(predict, ldm)
+
+S3method(tune_ldm, default)
