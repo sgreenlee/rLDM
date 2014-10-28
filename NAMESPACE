@@ -8,3 +8,4 @@ S3method(ldm, formula)
 S3method(predict, ldm)
 
 S3method(tune_ldm, default)
+S3method(tune_ldm, formula)

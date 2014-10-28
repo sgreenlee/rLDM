@@ -36,5 +36,13 @@ tune_ldm.default <- function(X, y, nfolds=5) {
 }
 
 tune_ldm.formula <- function(formula, data, ...) {
-  
+    mf <- model.frame(formula, data)
+    Terms <- attr(mf, "terms")
+    attr(Terms, "intercept") <- 0
+    
+    X <- model.matrix(Terms, mf)
+    y <- model.extract(mf, "response")
+    
+    ret <- tune_ldm.default(X, y, ...)
+    return(ret)
 }
