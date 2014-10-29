@@ -16,7 +16,7 @@ tune_ldm.default <- function(X, y, nfolds=5) {
   n <- nrow(pmat)
   
   cv.errs <- vector(mode="numeric", length=n)
-  min.err <- 1e7
+  min.err <- 1
   j <- 0
   for (i in 1:n) {
     cv.err <- 0
