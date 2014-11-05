@@ -8,7 +8,8 @@ ldm.default <- function(y, X, kernel = 'radial', cost = 10, gamma=1, degree=2,
   
   if (!is.factor(y)) stop("y must be a factor")
   if (length(levels(y)) != 2) stop("y must be a two-level factor: multi-class not implemented yet")
-  else y <- c(-1,1)[unclass(y)]
+  y.levels <- levels(y)
+  y <- c(-1,1)[unclass(y)]
   
   if (length(scale)==1) scale <- rep(scale, ncol(X))
   else if (length(scale) != ncol(X)) {
@@ -52,7 +53,8 @@ ldm.default <- function(y, X, kernel = 'radial', cost = 10, gamma=1, degree=2,
   
   ret <- list(alpha=cret$alpha)
   ret$G <- G
-  ret$fitted <- sign(G %*% ret$alpha)
+  ret$fitted <- y.levels[sign(G %*% ret$alpha)/2 + 1.5]
+  ret$y.levels <- y.levels
   ret$cost <- cost
   ret$lambda_1 <- lambda_1
   ret$lambda_2 <- lambda_2
@@ -78,6 +80,7 @@ ldm.formula <- function(formula, data = NULL, ... )
   
   ret <- ldm.default(y, X, ...)
   ret$call <- call
+  ret$formula <- formula
   class(ret) <- c('ldm.formula', class(ret))
   return(ret)
 }

@@ -8,8 +8,11 @@ predict.ldm <- function(object, newdata, type="response") {
   
   if(inherits(object, "ldm.formula")) {
     
-    # construct model matrix from formula
-  
+    mf <- model.frame(formula, newdata)
+    Terms <- attr(mf, "terms")
+    attr(Terms, "intercept") <- 0
+    
+    newdata <- model.matrix(Terms, mf)
   }
   
   alpha <- object$alpha
@@ -24,11 +27,13 @@ predict.ldm <- function(object, newdata, type="response") {
     xtmp <- scale(newdata[ , scaled], center=x.scale[[1]], scale=x.scale[[2]])
     newdata[ , scaled] <- xtmp
   }
+  rownames(newdata) <- NULL
   
   pred <- .C("ldmPredict", as.double(alpha), as.double(gamma), 
              as.double(newdata), as.integer(d), as.double(mod.matrix), 
              pred=double(d[1]), PACKAGE="rldm")$pred
-  if (identical(type, "response")) pred <- as.factor(sign(pred))
+  if (identical(type, "response")) pred <- as.factor(object$y.levels[sign(pred)/2 + 1.5])
+  levels(pred) <- object$y.levels
   return(pred)
 }
   
