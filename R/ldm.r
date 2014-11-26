@@ -33,16 +33,13 @@ ldm.default <- function(y, X, kernel = 'radial', cost = 10, gamma=1, degree=2,
               G=double(n^2), as.integer(kernel_type), as.double(tuning_params),
              PACKAGE="rldm")
   }
-  G <- matrix(gmat$G, nrow=n)
-  Gy <- G %*% y
-  Y <- diag(y)
-  GY <- G %*% Y
-  Q <- 4 * lambda_2 * ((t(G) %*% G) / n - Gy %*% t(Gy) / n^2) + G
-  invQ <- solve(Q)
-  A <- invQ %*% GY
+  G <- matrix(gmat$G, ncol=n)
+  GY <- matrix(gmat$G, nrow=n) %*% diag(y)
+  Q <- 4 * lambda_1 * ((t(G) %*% G) / n - GY %*% matrix(1, ncol=n, nrow= n) %*% t(GY) / n^2) + G
+  A <- solve(Q, GY)
+  alpha <- lambda_2 / n * A %*% matrix(rep(1, times=n), ncol=1)
   h <- diag(t(GY) %*% A)
   
-  alpha <- lambda_2 / n * invQ %*% Gy 
   beta <- double(n)
   beta_old <- double(n)
   del_beta <- double(n)
