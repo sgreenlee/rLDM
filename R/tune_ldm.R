@@ -32,7 +32,7 @@ tune_ldm.default <- function(X, y, scale=T, nfolds=5) {
       j <- i
     }
   }
-  best.mod <- do.call(ldm, c(list(X=X, y=y), as.list(pmat[j, ])))
+  best.mod <- do.call(ldm, c(list(X=X, y=y, scale=scale), as.list(pmat[j, ])))
   return(c(list(best.model=best.mod, cv.err=cv.errs[j]), as.list(pmat[j, ]))) 
 }
 
@@ -45,5 +45,6 @@ tune_ldm.formula <- function(formula, data, ...) {
     y <- model.extract(mf, "response")
     
     ret <- tune_ldm.default(X, y, ...)
+    class(ret$best.model) <- c("ldm.formula", "ldm")
     return(ret)
 }
