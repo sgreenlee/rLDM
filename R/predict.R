@@ -29,9 +29,14 @@ predict.ldm <- function(object, newdata, type="response") {
   }
   rownames(newdata) <- NULL
   
-  pred <- .C("ldmPredict", as.double(alpha), as.double(gamma), 
-             as.double(newdata), as.integer(d), as.double(mod.matrix), 
-             pred=double(d[1]), PACKAGE="rldm")$pred
+  if (object$kernel != 0) {
+    pred <- .C("ldmPredict", as.double(alpha), as.double(gamma), 
+      as.double(newdata), as.integer(d), as.double(mod.matrix), 
+      pred=double(d[1]), PACKAGE="rldm")$pred
+  }
+  else {
+    pred <- newdata %*% t(mod.matrix) %*% as.matrix(alpha, ncol=1)
+  }
   if (identical(type, "response")) pred <- as.factor(object$y.levels[sign(pred)/2 + 1.5])
   levels(pred) <- object$y.levels
   return(pred)

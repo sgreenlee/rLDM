@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <R.h>
 #include <math.h>
+#include <time.h>
 
 
 void coordDescent(int *n, double *A, double *GY, double *alpha, double *beta,
@@ -156,3 +157,57 @@ void ldmPredict(double *alpha, double *rbf_gamma, double *newdata, int *dim,
   }
 }
 
+int rand_lim(int limit) {
+    int divisor = RAND_MAX/(limit+1);
+    int ret;
+    while(1) {
+      ret = rand() / divisor;
+      if(ret <= limit) return ret;
+    }
+}
+
+void avSGD(int *n, int *m, double *X, double *y, double *C, double *eta, double *w,
+            double *w_bar, double *gradient, double *lambda_1, double *lambda_2) {
+              
+  Rprintf("Address of n: %p \n", n);
+  Rprintf("Address of m: %p \n", m);
+  Rprintf("Address of X: %p \n", X);
+  Rprintf("Address of y: %p \n", y);
+  Rprintf("Address of C: %p \n", C);
+  Rprintf("Address of eta: %p \n", eta);
+  Rprintf("Address of w: %p \n", w);
+  Rprintf("Address of w_bar: %p \n", w_bar);
+  Rprintf("Address of gradient: %p \n", gradient);
+  Rprintf("Address of lambda_1: %p \n", lambda_1);
+  Rprintf("Address of lambda_2: %p \n", lambda_2);
+              
+  srand(time(NULL));
+  
+  for(int t=0; t <= *n * 5; t++) {
+    int i = rand_lim(*n - 1);
+    int j;
+    do { j = rand_lim(*n - 1); } while(i == j);
+    
+    double idot = 0;
+    for(int p=0; p < *m; p++) {
+        idot += X[i + p * *n] * w[p];
+    }
+    int C = (y[i] * idot < 1) ? 1 : 0;
+    double jdot = 0;
+      for(int p=0; p < *m; p++) {
+        jdot += X[j + p * *n] * w[p];
+    }
+    for(int k=0; k < *m; k++) {
+      gradient[k] = 4 * *lambda_1 * idot * X[i + k * *n];
+      gradient[k] -= 4 * *lambda_1 * jdot * y[i] * y[j] * X[i + k * *n];
+      gradient[k] += w[k];
+      gradient[k] -= *lambda_2 * y[i] * X[i + k * *n];
+      gradient[k] -= C * *n * y[i] * X[i + k * *n];
+    }
+    for(int k=0; k < *m; i++) {
+      w[k] -= *eta * gradient[k];
+      w_bar[k] += (1 / t) * (w[k] - w_bar[k]); 
+    }
+  
+  }
+}
