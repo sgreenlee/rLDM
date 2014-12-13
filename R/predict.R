@@ -8,7 +8,7 @@ predict.ldm <- function(object, newdata, type="response") {
   
   if(inherits(object, "ldm.formula")) {
     
-    mf <- model.frame(formula, newdata)
+    mf <- model.frame(object$formula, newdata)
     Terms <- attr(mf, "terms")
     attr(Terms, "intercept") <- 0
     

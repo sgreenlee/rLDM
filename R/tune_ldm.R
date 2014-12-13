@@ -45,6 +45,8 @@ tune_ldm.formula <- function(formula, data, ...) {
     y <- model.extract(mf, "response")
     
     ret <- tune_ldm.default(X, y, ...)
+    ret$call <- call
+    ret$formula <- formula
     class(ret$best.model) <- c("ldm.formula", "ldm")
     return(ret)
 }
